@@ -17,21 +17,44 @@
 
 package org.bitcoinj.core;
 
-import com.google.common.base.*;
-import com.google.common.collect.*;
-import com.google.common.util.concurrent.*;
-import org.bitcoinj.core.listeners.*;
-import org.bitcoinj.store.*;
-import org.bitcoinj.utils.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.locks.ReentrantLock;
+
+import javax.annotation.Nullable;
+
+import org.bitcoinj.core.listeners.BlockChainListener;
+import org.bitcoinj.core.listeners.NewBestBlockListener;
+import org.bitcoinj.core.listeners.ReorganizeListener;
+import org.bitcoinj.core.listeners.TransactionReceivedInBlockListener;
+import org.bitcoinj.store.BlockStore;
+import org.bitcoinj.store.BlockStoreException;
+import org.bitcoinj.utils.ListenerRegistration;
+import org.bitcoinj.utils.Threading;
+import org.bitcoinj.utils.VersionTally;
 import org.bitcoinj.wallet.Wallet;
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.annotation.*;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
-
-import static com.google.common.base.Preconditions.*;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 
 /**
  * <p>An AbstractBlockChain holds a series of {@link Block} objects, links them together, and knows how to verify that
@@ -132,7 +155,7 @@ public abstract class AbstractBlockChain {
     private double falsePositiveTrend;
     private double previousFalsePositiveRate;
 
-    private final VersionTally versionTally;
+    protected final VersionTally versionTally;
 
     /** See {@link #AbstractBlockChain(Context, List, BlockStore)} */
     public AbstractBlockChain(NetworkParameters params, List<? extends Wallet> transactionReceivedListeners,
@@ -422,7 +445,7 @@ public abstract class AbstractBlockChain {
     protected abstract TransactionOutputChanges connectTransactions(StoredBlock newBlock) throws VerificationException, BlockStoreException, PrunedException;    
     
     // filteredTxHashList contains all transactions, filteredTxn just a subset
-    private boolean add(Block block, boolean tryConnecting,
+    protected boolean add(Block block, boolean tryConnecting,
                         @Nullable List<Sha256Hash> filteredTxHashList, @Nullable Map<Sha256Hash, Transaction> filteredTxn)
             throws BlockStoreException, VerificationException, PrunedException {
         // TODO: Use read/write locks to ensure that during chain download properties are still low latency.
@@ -517,7 +540,7 @@ public abstract class AbstractBlockChain {
     // expensiveChecks enables checks that require looking at blocks further back in the chain
     // than the previous one when connecting (eg median timestamp check)
     // It could be exposed, but for now we just set it to shouldVerifyTransactions()
-    private void connectBlock(final Block block, StoredBlock storedPrev, boolean expensiveChecks,
+    protected void connectBlock(final Block block, StoredBlock storedPrev, boolean expensiveChecks,
                               @Nullable final List<Sha256Hash> filteredTxHashList,
                               @Nullable final Map<Sha256Hash, Transaction> filteredTxn) throws BlockStoreException, VerificationException, PrunedException {
         checkState(lock.isHeldByCurrentThread());
@@ -559,8 +582,10 @@ public abstract class AbstractBlockChain {
             TransactionOutputChanges txOutChanges = null;
             if (shouldVerifyTransactions())
                 txOutChanges = connectTransactions(storedPrev.getHeight() + 1, block);
-            StoredBlock newStoredBlock = addToBlockStore(storedPrev,
-                    block.transactions == null ? block : block.cloneAsHeader(), txOutChanges);
+
+
+
+            StoredBlock newStoredBlock = addToBlockStore(storedPrev, block.transactions == null ? block : block.cloneAsHeader(), txOutChanges);
             versionTally.add(block.getVersion());
             setChainHead(newStoredBlock);
             log.debug("Chain is now {} blocks high, running listeners", newStoredBlock.getHeight());
@@ -611,7 +636,7 @@ public abstract class AbstractBlockChain {
         }
     }
 
-    private void informListenersForNewBlock(final Block block, final NewBlockType newBlockType,
+    protected void informListenersForNewBlock(final Block block, final NewBlockType newBlockType,
                                             @Nullable final List<Sha256Hash> filteredTxHashList,
                                             @Nullable final Map<Sha256Hash, Transaction> filteredTxn,
                                             final StoredBlock newStoredBlock) throws VerificationException {
@@ -676,7 +701,7 @@ public abstract class AbstractBlockChain {
         trackFalsePositives(falsePositives.size());
     }
 
-    private static void informListenerForNewTransactions(Block block, NewBlockType newBlockType,
+    protected static void informListenerForNewTransactions(Block block, NewBlockType newBlockType,
                                                          @Nullable List<Sha256Hash> filteredTxHashList,
                                                          @Nullable Map<Sha256Hash, Transaction> filteredTxn,
                                                          StoredBlock newStoredBlock, boolean first,
@@ -740,7 +765,7 @@ public abstract class AbstractBlockChain {
      * if (shouldVerifyTransactions)
      *     Either newChainHead needs to be in the block store as a FullStoredBlock, or (block != null && block.transactions != null)
      */
-    private void handleNewBestChain(StoredBlock storedPrev, StoredBlock newChainHead, Block block, boolean expensiveChecks)
+    protected void handleNewBestChain(StoredBlock storedPrev, StoredBlock newChainHead, Block block, boolean expensiveChecks)
             throws BlockStoreException, VerificationException, PrunedException {
         checkState(lock.isHeldByCurrentThread());
         // This chain has overtaken the one we currently believe is best. Reorganize is required.
@@ -816,7 +841,7 @@ public abstract class AbstractBlockChain {
     /**
      * Returns the set of contiguous blocks between 'higher' and 'lower'. Higher is included, lower is not.
      */
-    private static LinkedList<StoredBlock> getPartialChain(StoredBlock higher, StoredBlock lower, BlockStore store) throws BlockStoreException {
+    protected static LinkedList<StoredBlock> getPartialChain(StoredBlock higher, StoredBlock lower, BlockStore store) throws BlockStoreException {
         checkArgument(higher.getHeight() > lower.getHeight(), "higher and lower are reversed");
         LinkedList<StoredBlock> results = new LinkedList<StoredBlock>();
         StoredBlock cursor = higher;
@@ -833,7 +858,7 @@ public abstract class AbstractBlockChain {
      * found (ie they are not part of the same chain). Returns newChainHead or chainHead if they don't actually diverge
      * but are part of the same chain.
      */
-    private static StoredBlock findSplit(StoredBlock newChainHead, StoredBlock oldChainHead,
+    protected static StoredBlock findSplit(StoredBlock newChainHead, StoredBlock oldChainHead,
                                          BlockStore store) throws BlockStoreException {
         StoredBlock currentChainCursor = oldChainHead;
         StoredBlock newChainCursor = newChainHead;
@@ -867,7 +892,7 @@ public abstract class AbstractBlockChain {
         SIDE_CHAIN
     }
 
-    private static void sendTransactionsToListener(StoredBlock block, NewBlockType blockType,
+    protected static void sendTransactionsToListener(StoredBlock block, NewBlockType blockType,
                                                    TransactionReceivedInBlockListener listener,
                                                    int relativityOffset,
                                                    List<Transaction> transactions,
@@ -900,7 +925,7 @@ public abstract class AbstractBlockChain {
     /**
      * For each block in orphanBlocks, see if we can now fit it on top of the chain and if so, do so.
      */
-    private void tryConnectingOrphans() throws VerificationException, BlockStoreException, PrunedException {
+    protected void tryConnectingOrphans() throws VerificationException, BlockStoreException, PrunedException {
         checkState(lock.isHeldByCurrentThread());
         // For each block in our orphan list, try and fit it onto the head of the chain. If we succeed remove it
         // from the list and keep going. If we changed the head of the list at the end of the round try again until

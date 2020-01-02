@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/bitcoinj-cash/bitcoinj.png?branch=cash-0.14)](https://travis-ci.org/bitcoinj-cash/bitcoinj)   [![Coverage Status](https://coveralls.io/repos/github/bitcoinj-cash/bitcoinj/badge.svg?branch=cash-0.14)](https://coveralls.io/github/bitcoinj-cash/bitcoinj?branch=cash-0.14) 
 
 ### Welcome to bitcoinj
 

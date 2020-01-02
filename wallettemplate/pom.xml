@@ -50,6 +50,14 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.3</version>
+                <configuration>
+                    <mainClass>hellofx/org.openjfx.App</mainClass>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -86,6 +94,16 @@
             <groupId>net.glxn</groupId>
             <artifactId>qrgen</artifactId>
             <version>1.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>12.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>14-ea+6</version>
         </dependency>
     </dependencies>
 </project>

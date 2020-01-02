@@ -21,14 +21,14 @@
 	</parent>
 
 	<scm>
-		<connection>scm:git:https://github.com/bitcoinj-cash/bitcoinj</connection>
-		<developerConnection>scm:https://github.com/bitcoinj-cash/bitcoinj</developerConnection>
-		<url>scm:git:https://github.com/bitcoinj-cash/bitcoinj</url>
+		<connection>scm:git:https://github.com:bitcoin-portal/bitcoinj.git</connection>
+		<developerConnection>scm:https://github.com:bitcoin-portal/bitcoinj</developerConnection>
+		<url>scm:git:https://github.com:bitcoin-portal/bitcoinj</url>
 	</scm>
 
 	<name>bitcoinj Parent</name>
 	<description>Provides the common configuration for the BitCoinJ modules</description>
-	<url>http://bitcoinj.cash/</url>
+	<url></url>
 
 	<licenses>
 		<license>
@@ -38,18 +38,6 @@
 			<comments>A business-friendly OSS license</comments>
 		</license>
 	</licenses>
-
-	<issueManagement>
-		<system>GitHub</system>
-		<url>https://github.com/bitcoinj-cash/bitcoinj/issues</url>
-	</issueManagement>
-
-	<mailingLists>
-		<mailingList>
-			<name>bitcoinj.cash Google Group</name>
-			<post>https://groups.google.com/forum/#!forum/bitcoinj-cash</post>
-		</mailingList>
-	</mailingLists>
 
 	<distributionManagement>
 		<snapshotRepository>
@@ -68,6 +56,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
@@ -78,6 +67,7 @@
 
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.0</version>
 				<configuration>
 					<archive>
 						<addMavenDescriptor>false</addMavenDescriptor>
@@ -152,7 +142,7 @@
 				</plugin>
 				<plugin>
 					<artifactId>maven-source-plugin</artifactId>
-					<version>2.4</version>
+					<version>3.2.1</version>
 				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
@@ -192,8 +182,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<generated.sourceDirectory>gen</generated.sourceDirectory>
-		<maven.compiler.source>1.6</maven.compiler.source>
-		<maven.compiler.target>1.6</maven.compiler.target>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
 	<profiles>
@@ -222,6 +212,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-source-plugin</artifactId>
+						<version>3.2.0</version>
 						<executions>
 							<execution>
 								<id>attach-sources</id>

@@ -123,7 +123,7 @@ public class PaymentSessionTest {
     }
 
     @Test
-    @Ignore //TODO fixed broken test
+    @Ignore //TODO Fix broken tests
     public void testPkiVerification() throws Exception {
         InputStream in = getClass().getResourceAsStream("pki_test.bitcoinpaymentrequest");
         Protos.PaymentRequest paymentRequest = Protos.PaymentRequest.newBuilder().mergeFrom(in).build();

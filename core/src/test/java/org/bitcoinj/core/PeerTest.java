@@ -540,7 +540,7 @@ public class PeerTest extends TestWithNetworkConnections {
     }
 
     @Test
-    @Ignore //TODO Fixed broken tests
+    @Ignore //TODO Fix broken tests
     public void recursiveDependencyDownloadDisabled() throws Exception {
         peer.setDownloadTxDependencies(false);
         connect();

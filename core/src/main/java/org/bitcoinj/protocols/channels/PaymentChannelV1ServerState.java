@@ -17,6 +17,7 @@
 package org.bitcoinj.protocols.channels;
 
 import com.google.common.collect.*;
+import com.google.common.util.concurrent.*;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.script.Script;
@@ -24,10 +25,6 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.Wallet;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -262,7 +259,7 @@ public class PaymentChannelV1ServerState extends PaymentChannelServerState {
                 stateMachine.transition(State.ERROR);
                 closedFuture.setException(throwable);
             }
-        });
+        }, MoreExecutors.directExecutor());
         return closedFuture;
     }
 

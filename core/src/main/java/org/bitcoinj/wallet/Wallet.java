@@ -24,7 +24,6 @@ import com.google.common.primitives.*;
 import com.google.common.util.concurrent.*;
 import com.google.protobuf.*;
 import net.jcip.annotations.*;
-import org.bitcoin.protocols.payments.Protos.*;
 import org.bitcoinj.core.listeners.*;
 import org.bitcoinj.core.AbstractBlockChain;
 import org.bitcoinj.core.Address;
@@ -5180,7 +5179,7 @@ public class Wallet extends BaseTaggableObject
                     public void onFailure(Throwable throwable) {
                         log.error("Failed to broadcast key rotation tx", throwable);
                     }
-                });
+                }, MoreExecutors.directExecutor());
             } catch (Exception e) {
                 log.error("Failed to broadcast rekey tx", e);
             }

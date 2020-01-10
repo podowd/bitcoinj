@@ -27,14 +27,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.Executor;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
 
+import com.google.common.util.concurrent.*;
 import org.bitcoinj.core.listeners.AbstractPeerEventListener;
 import org.bitcoinj.core.listeners.BlocksDownloadedEventListener;
 import org.bitcoinj.core.listeners.ChainDownloadStartedEventListener;
@@ -57,10 +56,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 
 import net.jcip.annotations.GuardedBy;
 
@@ -201,7 +196,7 @@ public class Peer extends PeerSocketHandler {
 					checkState(peers.size() == 2 && peers.get(0) == peers.get(1));
 					return peers.get(0);
 				}
-			});
+			}, MoreExecutors.directExecutor());
 
 	/**
 	 * <p>Construct a peer that reads/writes from the given block chain.</p>
@@ -912,7 +907,7 @@ public class Peer extends PeerSocketHandler {
 									log.error("Error was: ", throwable);
 									// Not much more we can do at this point.
 								}
-							});
+							}, MoreExecutors.directExecutor());
 						} else {
 							wallet.receivePending(tx, null);
 						}
@@ -972,7 +967,7 @@ public class Peer extends PeerSocketHandler {
 			public void onFailure(Throwable throwable) {
 				resultFuture.setException(throwable);
 			}
-		});
+		}, MoreExecutors.directExecutor());
 		return resultFuture;
 	}
 
@@ -1030,17 +1025,18 @@ public class Peer extends PeerSocketHandler {
 					} else {
 						// There are some children to download. Wait until it's done (and their children and their
 						// children...) to inform the caller that we're finished.
-						Futures.addCallback(Futures.successfulAsList(childFutures), new FutureCallback<List<Object>>() {
-							@Override
-							public void onSuccess(List<Object> objects) {
-								resultFuture.set(marker);
-							}
+						Futures.addCallback(Futures.successfulAsList(childFutures),
+								new FutureCallback<List<Object>>() {
+									@Override
+									public void onSuccess(List<Object> objects) {
+										resultFuture.set(marker);
+									}
 
-							@Override
-							public void onFailure(Throwable throwable) {
-								resultFuture.setException(throwable);
-							}
-						});
+									@Override
+									public void onFailure(Throwable throwable) {
+										resultFuture.setException(throwable);
+									}
+								}, MoreExecutors.directExecutor());
 					}
 				}
 
@@ -1048,7 +1044,7 @@ public class Peer extends PeerSocketHandler {
 				public void onFailure(Throwable throwable) {
 					resultFuture.setException(throwable);
 				}
-			});
+			}, MoreExecutors.directExecutor());
 			// Start the operation.
 			sendMessage(getdata);
 		} catch (Exception e) {

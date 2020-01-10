@@ -16,15 +16,12 @@
 
 package org.bitcoinj.protocols.channels;
 
+import com.google.common.util.concurrent.*;
 import org.bitcoinj.wallet.SendRequest;
 import org.bitcoinj.wallet.Wallet;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.script.Script;
@@ -211,7 +208,7 @@ public abstract class PaymentChannelServerState {
                 stateMachine.transition(State.ERROR);
                 future.setException(throwable);
             }
-        });
+        }, MoreExecutors.directExecutor());
         return future;
     }
 

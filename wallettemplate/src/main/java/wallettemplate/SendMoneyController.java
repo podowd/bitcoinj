@@ -14,6 +14,7 @@
 
 package wallettemplate;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import javafx.scene.layout.HBox;
 import org.bitcoinj.core.*;
 import org.bitcoinj.wallet.SendRequest;
@@ -86,7 +87,7 @@ public class SendMoneyController {
                     // We died trying to empty the wallet.
                     crashAlert(t);
                 }
-            });
+            }, MoreExecutors.directExecutor());
             sendResult.tx.getConfidence().addEventListener((tx, reason) -> {
                 if (reason == TransactionConfidence.Listener.ChangeReason.SEEN_PEERS)
                     updateTitleForBroadcast();

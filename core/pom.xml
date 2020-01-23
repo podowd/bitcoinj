@@ -108,6 +108,46 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <id>shaded-jar</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <configuration>
+                                    <minimizeJar>true</minimizeJar>
+                                    <artifactSet>
+                                        <includes>
+                                            <include>org.bitcoin.*:*</include>
+                                            <include>org.bitcoinj.*:*</include>
+                                        </includes>
+                                    </artifactSet>
+                                    <relocations>
+                                        <relocation>
+                                            <pattern>org.bitcoin</pattern>
+                                            <shadedPattern>org.bitcoincash</shadedPattern>
+                                        </relocation>
+                                        <relocation>
+                                            <pattern>org.bitcoinj</pattern>
+                                            <shadedPattern>org.bitcoincashj</shadedPattern>
+                                        </relocation>
+                                    </relocations>
+                                    <shadedArtifactId>bitcoincashj</shadedArtifactId>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>
@@ -132,36 +172,6 @@
                         <goals>
                             <goal>jar-no-fork</goal>
                         </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <!-- Create the bundled JAR, it's easier for some people -->
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <minimizeJar>false</minimizeJar>
-                            <filters>
-                                <filter>
-                                    <!-- exclude signatures, the bundling process breaks them for some reason -->
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>bundled</shadedClassifierName>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
